@@ -46,6 +46,7 @@ export function withDeckGLControls(Component: React.ComponentType<any>) {
   return function DeckGLControlWrapper(props: any) {
     const { type, ...otherProps } = props;
     const ExpandedComponent = expandDeckGLControlType(type) || Component;
+    // @ts-ignore - TypeScript doesn't recognize dynamic JSX components
     return <ExpandedComponent {...otherProps} />;
   };
 }

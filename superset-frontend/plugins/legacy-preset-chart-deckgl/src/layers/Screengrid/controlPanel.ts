@@ -22,20 +22,8 @@ import {
 } from '@superset-ui/chart-controls';
 import { t, validateNonEmpty } from '@superset-ui/core';
 import timeGrainSqlaAnimationOverrides from '../../utilities/controls';
-import {
-  filterNulls,
-  autozoom,
-  jsColumns,
-  jsDataMutator,
-  jsTooltip,
-  jsOnclickHref,
-  gridSize,
-  viewport,
-  spatial,
-  mapboxStyle,
-  tooltipContents,
-  tooltipTemplate,
-} from '../../utilities/Shared_DeckGL';
+import { COLOR_SCHEME_TYPES } from '../../utilities/utils';
+import * as SharedDeckGL from '../../utilities/Shared_DeckGL';
 
 const config: ControlPanelConfig = {
   controlPanelSections: [
@@ -43,31 +31,55 @@ const config: ControlPanelConfig = {
       label: t('Query'),
       expanded: true,
       controlSetRows: [
-        [spatial],
+        [SharedDeckGL.spatial],
         ['size'],
         ['row_limit'],
-        [filterNulls],
+        [SharedDeckGL.filterNulls],
         ['adhoc_filters'],
-        [tooltipContents],
-        [tooltipTemplate],
+        [SharedDeckGL.tooltipContents],
+        [SharedDeckGL.tooltipTemplate],
       ],
     },
     {
       label: t('Map'),
-      controlSetRows: [[mapboxStyle], [autozoom, viewport]],
+      controlSetRows: [
+        [SharedDeckGL.mapboxStyle],
+        [SharedDeckGL.autozoom, SharedDeckGL.viewport],
+      ],
     },
     {
       label: t('Grid'),
       expanded: true,
-      controlSetRows: [[gridSize, 'color_picker']],
+      controlSetRows: [
+        [SharedDeckGL.gridSize],
+        [
+          {
+            name: 'color_scheme_type',
+            config: {
+              ...SharedDeckGL.deckGLCategoricalColorSchemeTypeSelect.config,
+              choices: [
+                ['default', 'Default'],
+                [COLOR_SCHEME_TYPES.fixed_color, t('Fixed color')],
+                [
+                  COLOR_SCHEME_TYPES.categorical_palette,
+                  t('Categorical palette'),
+                ],
+              ],
+              default: 'default',
+            },
+          },
+        ],
+        [SharedDeckGL.deckGLFixedColor],
+        [SharedDeckGL.deckGLCategoricalColorSchemeSelect],
+      ],
     },
     {
       label: t('Advanced'),
       controlSetRows: [
-        [jsColumns],
-        [jsDataMutator],
-        [jsTooltip],
-        [jsOnclickHref],
+        [SharedDeckGL.jsColumns],
+        [SharedDeckGL.jsDataMutator],
+        [SharedDeckGL.jsTooltip],
+        [SharedDeckGL.jsOnclickHref],
       ],
     },
   ],

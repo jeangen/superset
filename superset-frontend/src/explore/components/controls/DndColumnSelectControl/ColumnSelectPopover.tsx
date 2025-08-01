@@ -36,7 +36,6 @@ import {
   DatasourceType,
   Metric,
   QueryFormMetric,
-  useTheme,
 } from '@superset-ui/core';
 import { ColumnMeta, isSavedExpression } from '@superset-ui/chart-controls';
 import Tabs from '@superset-ui/core/components/Tabs';
@@ -137,7 +136,6 @@ const ColumnSelectPopover = ({
   metrics = [],
   selectedMetrics = [],
 }: ColumnSelectPopoverProps) => {
-  const theme = useTheme();
   const datasourceType = useSelector<ExplorePageState, string | undefined>(
     state => state.explore.datasource.type,
   );
@@ -322,7 +320,19 @@ const ColumnSelectPopover = ({
     if (!selectedItem) {
       return;
     }
-    onChange(selectedItem);
+    // Handle the case where selectedItem might be a Metric
+    if ('metric_name' in selectedItem) {
+      // Convert Metric to ColumnMeta format
+      const metricAsColumn: ColumnMeta = {
+        column_name: selectedItem.metric_name,
+        verbose_name: selectedItem.verbose_name || selectedItem.metric_name,
+        type: 'VARCHAR', // Default type for metrics
+        id: selectedItem.metric_name,
+      };
+      onChange(metricAsColumn);
+    } else {
+      onChange(selectedItem);
+    }
     onClose();
   }, [
     adhocColumn,
@@ -606,7 +616,12 @@ const ColumnSelectPopover = ({
       />
 
       <div>
-        <Button buttonSize="small" onClick={onResetStateAndClose} cta>
+        <Button
+          buttonSize="small"
+          buttonStyle="secondary"
+          onClick={onResetStateAndClose}
+          cta
+        >
           {t('Close')}
         </Button>
         <Button

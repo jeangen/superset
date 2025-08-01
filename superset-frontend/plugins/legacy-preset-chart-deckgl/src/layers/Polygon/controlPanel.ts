@@ -22,32 +22,9 @@ import {
 } from '@superset-ui/chart-controls';
 import { t } from '@superset-ui/core';
 import timeGrainSqlaAnimationOverrides from '../../utilities/controls';
-import { formatSelectOptions } from '../../utilities/utils';
-import {
-  filterNulls,
-  autozoom,
-  jsColumns,
-  jsDataMutator,
-  jsTooltip,
-  jsOnclickHref,
-  legendFormat,
-  legendPosition,
-  fillColorPicker,
-  strokeColorPicker,
-  filled,
-  stroked,
-  extruded,
-  viewport,
-  pointRadiusFixed,
-  multiplier,
-  lineWidth,
-  lineType,
-  reverseLongLat,
-  mapboxStyle,
-  tooltipContents,
-  tooltipTemplate,
-} from '../../utilities/Shared_DeckGL';
+import { COLOR_SCHEME_TYPES, formatSelectOptions } from '../../utilities/utils';
 import { dndLineColumn } from '../../utilities/sharedDndControls';
+import * as SharedDeckGL from '../../utilities/Shared_DeckGL';
 
 const config: ControlPanelConfig = {
   controlPanelSections: [
@@ -66,9 +43,9 @@ const config: ControlPanelConfig = {
         ],
         [
           {
-            ...lineType,
+            ...SharedDeckGL.lineType,
             config: {
-              ...lineType.config,
+              ...SharedDeckGL.lineType.config,
               label: t('Polygon Encoding'),
             },
           },
@@ -77,34 +54,56 @@ const config: ControlPanelConfig = {
         ['metric'],
         [
           {
-            ...pointRadiusFixed,
+            ...SharedDeckGL.pointRadiusFixed,
             config: {
-              ...pointRadiusFixed.config,
+              ...SharedDeckGL.pointRadiusFixed.config,
               label: t('Elevation'),
             },
           },
         ],
         ['row_limit'],
-        [reverseLongLat],
-        [filterNulls],
-        [tooltipContents],
-        [tooltipTemplate],
+        [SharedDeckGL.reverseLongLat],
+        [SharedDeckGL.filterNulls],
+        [SharedDeckGL.tooltipContents],
+        [SharedDeckGL.tooltipTemplate],
       ],
     },
     {
       label: t('Map'),
       expanded: true,
-      controlSetRows: [[mapboxStyle], [viewport], [autozoom]],
+      controlSetRows: [
+        [SharedDeckGL.mapboxStyle],
+        [SharedDeckGL.viewport],
+        [SharedDeckGL.autozoom],
+      ],
     },
     {
       label: t('Polygon Settings'),
       expanded: true,
       controlSetRows: [
-        [fillColorPicker, strokeColorPicker],
-        [filled, stroked],
-        [extruded],
-        [multiplier],
-        [lineWidth],
+        [
+          {
+            ...SharedDeckGL.deckGLCategoricalColorSchemeTypeSelect,
+            config: {
+              ...SharedDeckGL.deckGLCategoricalColorSchemeTypeSelect.config,
+              choices: [
+                [COLOR_SCHEME_TYPES.fixed_color, t('Fixed color')],
+                [COLOR_SCHEME_TYPES.linear_palette, t('Linear palette')],
+                [COLOR_SCHEME_TYPES.color_breakpoints, t('Color breakpoints')],
+              ],
+              default: COLOR_SCHEME_TYPES.linear_palette,
+            },
+          },
+          SharedDeckGL.fillColorPicker,
+          SharedDeckGL.strokeColorPicker,
+          SharedDeckGL.deckGLLinearColorSchemeSelect,
+          SharedDeckGL.breakpointsDefaultColor,
+          SharedDeckGL.deckGLColorBreakpointsSelect,
+        ],
+        [SharedDeckGL.filled, SharedDeckGL.stroked],
+        [SharedDeckGL.extruded],
+        [SharedDeckGL.multiplier],
+        [SharedDeckGL.lineWidth],
         [
           {
             name: 'line_width_unit',
@@ -120,7 +119,6 @@ const config: ControlPanelConfig = {
             },
           },
         ],
-        ['linear_color_scheme'],
         [
           {
             name: 'opacity',
@@ -193,17 +191,17 @@ const config: ControlPanelConfig = {
             },
           },
         ],
-        [legendPosition],
-        [legendFormat],
+        [SharedDeckGL.legendPosition],
+        [SharedDeckGL.legendFormat],
       ],
     },
     {
       label: t('Advanced'),
       controlSetRows: [
-        [jsColumns],
-        [jsDataMutator],
-        [jsTooltip],
-        [jsOnclickHref],
+        [SharedDeckGL.jsColumns],
+        [SharedDeckGL.jsDataMutator],
+        [SharedDeckGL.jsTooltip],
+        [SharedDeckGL.jsOnclickHref],
       ],
     },
   ],

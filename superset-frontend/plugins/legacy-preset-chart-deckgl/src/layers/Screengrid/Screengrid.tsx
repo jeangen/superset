@@ -23,8 +23,12 @@ import {
   JsonValue,
   QueryFormData,
   styled,
+  CategoricalColorNamespace,
 } from '@superset-ui/core';
+import { Color } from '@deck.gl/core';
+import { COLOR_SCHEME_TYPES, ColorSchemeType } from '../../utilities/utils';
 import sandboxedEval from '../../utils/sandbox';
+import { getColorRange } from '../common';
 import TooltipRow from '../../TooltipRow';
 import fitViewport, { Viewport } from '../../utils/fitViewport';
 import {
@@ -36,6 +40,7 @@ import {
   createTooltipContent,
   CommonTooltipRows,
 } from '../../utilities/tooltipUtils';
+import { GetLayerType } from '../../factory';
 
 const MoreRecordsIndicator = styled.div`
   margin-top: 4px;
@@ -88,23 +93,42 @@ function defaultTooltipGenerator(o: JsonObject, formData: QueryFormData) {
   );
 }
 
-export function getLayer(
-  formData: QueryFormData,
-  payload: JsonObject,
-  onAddFilter: () => void,
-  setTooltip: (tooltip: TooltipProps['tooltip']) => void,
-) {
+export const getLayer: GetLayerType<ScreenGridLayer> = function ({
+  formData,
+  setDataMask,
+  filterState,
+  onContextMenu,
+  payload,
+  setTooltip,
+  emitCrossFilters,
+}) {
   const fd = formData;
-  const c = fd.color_picker;
-  let data = payload.data.features.map((d: JsonObject) => ({
-    ...d,
-    color: [c.r, c.g, c.b, 255 * c.a],
-  }));
+  const appliedScheme = fd.color_scheme;
+  const colorScale = CategoricalColorNamespace.getScale(appliedScheme);
+  let data = payload.data.features;
 
   if (fd.js_data_mutator) {
     const jsFnMutator = sandboxedEval(fd.js_data_mutator);
     data = jsFnMutator(data);
   }
+
+  const colorSchemeType = fd.color_scheme_type as ColorSchemeType & 'default';
+  const colorRange = getColorRange({
+    defaultBreakpointsColor: fd.deafult_breakpoint_color,
+    colorBreakpoints: fd.color_breakpoints,
+    fixedColor: fd.color_picker,
+    colorSchemeType,
+    colorScale,
+  });
+
+  const defaultScreenGridColorRange = [
+    [255, 255, 178],
+    [254, 217, 118],
+    [254, 178, 76],
+    [253, 141, 60],
+    [240, 59, 32],
+    [189, 0, 38],
+  ] as Color[];
 
   const cellSize = fd.grid_size || 50;
   const cellToPointsMap = new Map();
@@ -158,14 +182,18 @@ export function getLayer(
     id: `screengrid-layer-${fd.slice_id}` as const,
     data,
     cellSizePixels: fd.grid_size,
-    minColor: [c.r, c.g, c.b, 0],
-    maxColor: [c.r, c.g, c.b, 255 * c.a],
+    colorDomain:
+      colorSchemeType === COLOR_SCHEME_TYPES.color_breakpoints && colorRange
+        ? [0, colorRange.length]
+        : undefined,
+    colorRange:
+      colorSchemeType === 'default' ? defaultScreenGridColorRange : colorRange,
     outline: false,
     getWeight: (d: JsonObject) => d.weight || 0,
     onHover: customOnHover,
     pickable: true,
   });
-}
+};
 
 export type DeckGLScreenGridProps = {
   formData: QueryFormData;
@@ -213,7 +241,11 @@ const DeckGLScreenGrid = (props: DeckGLScreenGridProps) => {
   }, []);
 
   const getLayers = useCallback(() => {
-    const layer = getLayer(props.formData, props.payload, () => {}, setTooltip);
+    const layer = getLayer({
+      formData: props.formData,
+      payload: props.payload,
+      setTooltip,
+    });
 
     return [layer];
   }, [props.formData, props.payload, setTooltip]);

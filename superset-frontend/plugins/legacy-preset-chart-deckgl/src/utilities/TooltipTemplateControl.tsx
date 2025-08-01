@@ -19,7 +19,6 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { styled, t } from '@superset-ui/core';
-import { TooltipTemplateEditor } from './TooltipTemplateEditor';
 
 const StyledContainer = styled.div`
   ${({ theme }) => `
@@ -212,12 +211,11 @@ export function TooltipTemplateControl({
 
         {getStatusIndicator()}
 
-        <TooltipTemplateEditor
+        <textarea
           value={value}
-          onChange={handleTemplateChange}
-          availableFields={[]} // Will be extracted from tooltipContents
-          name={name}
-          tooltipContents={tooltipContents}
+          onChange={e => handleTemplateChange(e.target.value)}
+          placeholder={t('Enter Handlebars template...')}
+          style={{ width: '100%', minHeight: '100px' }}
         />
       </div>
     </StyledContainer>
